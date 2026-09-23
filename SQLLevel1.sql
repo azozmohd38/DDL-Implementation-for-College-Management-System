@@ -1,109 +1,104 @@
-
-IF DB_ID(N'CollegeManagementDB') IS NULL CREATE DATABASE CollegeManagementDB;
+CREATE DATABASE CollegeManagementDB;
 GO
+
 USE CollegeManagementDB;
 GO
 
 CREATE TABLE Department (
-    DepartmentID INT IDENTITY(1,1) PRIMARY KEY,
-    DepartmentName NVARCHAR(100) NOT NULL UNIQUE
-);
-
-CREATE TABLE Hostel (
-    HostelID INT IDENTITY(1,1) PRIMARY KEY,
-    HostelName NVARCHAR(100) NOT NULL UNIQUE,
-    NumberOfSeats INT NOT NULL CHECK (NumberOfSeats >= 0)
-);
-
-CREATE TABLE Course (
-    CourseID INT IDENTITY(1,1) PRIMARY KEY,
-    CourseName NVARCHAR(120) NOT NULL UNIQUE,
-    DurationMonths INT NOT NULL CHECK (DurationMonths > 0),
-    DepartmentID INT NOT NULL,
-    CONSTRAINT FK_Course_Department FOREIGN KEY (DepartmentID)
-        REFERENCES Department(DepartmentID)
+    Department_id INT PRIMARY KEY,
+    D_name NVARCHAR(100)
 );
 
 CREATE TABLE Faculty (
-    FacultyID INT IDENTITY(1,1) PRIMARY KEY,
-    FacultyName NVARCHAR(120) NOT NULL,
-    MobileNumber VARCHAR(20) NULL,
-    Salary DECIMAL(12,2) NOT NULL CHECK (Salary >= 0),
-    DepartmentID INT NOT NULL,
-    CONSTRAINT FK_Faculty_Department FOREIGN KEY (DepartmentID)
-        REFERENCES Department(DepartmentID)
+    F_id INT PRIMARY KEY,
+    Name NVARCHAR(100),
+    Mobile_no VARCHAR(20),
+    Department_id INT,
+    Salary DECIMAL(10, 2),
+    FOREIGN KEY (Department_id) REFERENCES Department(Department_id)
+);
+
+CREATE TABLE Hostel (
+    Hostel_id INT PRIMARY KEY,
+    Hostel_name NVARCHAR(100),
+    City NVARCHAR(100),
+    State NVARCHAR(100),
+    Address NVARCHAR(200),
+    Pin_code VARCHAR(20),
+    No_of_seats INT
 );
 
 CREATE TABLE Student (
-    StudentID INT IDENTITY(1,1) PRIMARY KEY,
-    FirstName NVARCHAR(60) NOT NULL,
-    LastName NVARCHAR(60) NOT NULL,
-    DOB DATE NOT NULL,
-    PhoneNumber VARCHAR(20) NULL,
-    DepartmentID INT NOT NULL,
-    HostelID INT NULL,
-    CONSTRAINT FK_Student_Department FOREIGN KEY (DepartmentID)
-        REFERENCES Department(DepartmentID),
-    CONSTRAINT FK_Student_Hostel FOREIGN KEY (HostelID)
-        REFERENCES Hostel(HostelID)
+    S_id INT PRIMARY KEY,
+    F_name NVARCHAR(100),
+    L_name NVARCHAR(100),
+    Name NVARCHAR(200),
+    Phone_no VARCHAR(20),
+    DOB DATE,
+    Department_id INT NULL,
+    Hostel_id INT NULL,
+    FOREIGN KEY (Department_id) REFERENCES Department(Department_id),
+    FOREIGN KEY (Hostel_id) REFERENCES Hostel(Hostel_id)
+);
+
+CREATE TABLE Course (
+    Course_id INT PRIMARY KEY,
+    [Course-name] NVARCHAR(100),
+    Duration NVARCHAR(50),
+    Department_id INT,
+    FOREIGN KEY (Department_id) REFERENCES Department(Department_id)
 );
 
 CREATE TABLE Subject (
-    SubjectID INT IDENTITY(1,1) PRIMARY KEY,
-    SubjectName NVARCHAR(120) NOT NULL UNIQUE,
-    CourseID INT NOT NULL,
-    CONSTRAINT FK_Subject_Course FOREIGN KEY (CourseID)
-        REFERENCES Course(CourseID)
+    Subject_id INT PRIMARY KEY,
+    Subject_name NVARCHAR(100)
 );
 
-CREATE TABLE StudentCourse (
-    StudentID INT NOT NULL,
-    CourseID INT NOT NULL,
-    EnrollmentDate DATE NOT NULL DEFAULT CAST(GETDATE() AS DATE),
-    CONSTRAINT PK_StudentCourse PRIMARY KEY (StudentID, CourseID),
-    CONSTRAINT FK_StudentCourse_Student FOREIGN KEY (StudentID)
-        REFERENCES Student(StudentID),
-    CONSTRAINT FK_StudentCourse_Course FOREIGN KEY (CourseID)
-        REFERENCES Course(CourseID)
+CREATE TABLE Exams (
+    Exam_code INT PRIMARY KEY,
+    [Date] DATE,
+    [Time] TIME,
+    Room NVARCHAR(50),
+    Department_id INT,
+    FOREIGN KEY (Department_id) REFERENCES Department(Department_id)
+);
+
+CREATE TABLE FacultyStudent (
+    F_id INT NOT NULL,
+    S_id INT NOT NULL,
+    PRIMARY KEY (F_id, S_id),
+    FOREIGN KEY (F_id) REFERENCES Faculty(F_id),
+    FOREIGN KEY (S_id) REFERENCES Student(S_id)
 );
 
 CREATE TABLE FacultySubject (
-    FacultyID INT NOT NULL,
-    SubjectID INT NOT NULL,
-    CONSTRAINT PK_FacultySubject PRIMARY KEY (FacultyID, SubjectID),
-    CONSTRAINT FK_FacultySubject_Faculty FOREIGN KEY (FacultyID)
-        REFERENCES Faculty(FacultyID),
-    CONSTRAINT FK_FacultySubject_Subject FOREIGN KEY (SubjectID)
-        REFERENCES Subject(SubjectID)
+    F_id INT NOT NULL,
+    Subject_id INT NOT NULL,
+    PRIMARY KEY (F_id, Subject_id),
+    FOREIGN KEY (F_id) REFERENCES Faculty(F_id),
+    FOREIGN KEY (Subject_id) REFERENCES Subject(Subject_id)
+);
+
+CREATE TABLE StudentCourse (
+    S_id INT NOT NULL,
+    Course_id INT NOT NULL,
+    PRIMARY KEY (S_id, Course_id),
+    FOREIGN KEY (S_id) REFERENCES Student(S_id),
+    FOREIGN KEY (Course_id) REFERENCES Course(Course_id)
 );
 
 CREATE TABLE StudentSubject (
-    StudentID INT NOT NULL,
-    SubjectID INT NOT NULL,
-    CONSTRAINT PK_StudentSubject PRIMARY KEY (StudentID, SubjectID),
-    CONSTRAINT FK_StudentSubject_Student FOREIGN KEY (StudentID)
-        REFERENCES Student(StudentID),
-    CONSTRAINT FK_StudentSubject_Subject FOREIGN KEY (SubjectID)
-        REFERENCES Subject(SubjectID)
+    S_id INT NOT NULL,
+    Subject_id INT NOT NULL,
+    PRIMARY KEY (S_id, Subject_id),
+    FOREIGN KEY (S_id) REFERENCES Student(S_id),
+    FOREIGN KEY (Subject_id) REFERENCES Subject(Subject_id)
 );
 
-CREATE TABLE Exam (
-    ExamCode INT IDENTITY(1,1) PRIMARY KEY,
-    SubjectID INT NOT NULL,
-    ExamDate DATE NOT NULL,
-    ExamTime TIME NOT NULL,
-    Room NVARCHAR(30) NOT NULL,
-    CONSTRAINT FK_Exam_Subject FOREIGN KEY (SubjectID)
-        REFERENCES Subject(SubjectID)
+CREATE TABLE StudentExam (
+    S_id INT NOT NULL,
+    Exam_code INT NOT NULL,
+    PRIMARY KEY (S_id, Exam_code),
+    FOREIGN KEY (S_id) REFERENCES Student(S_id),
+    FOREIGN KEY (Exam_code) REFERENCES Exams(Exam_code)
 );
-
-GO
-CREATE OR ALTER VIEW StudentWithAge AS
-SELECT StudentID, FirstName, LastName, DOB,
-       DATEDIFF(YEAR, DOB, GETDATE())
-       - CASE WHEN DATEADD(YEAR, DATEDIFF(YEAR, DOB, GETDATE()), DOB) > CAST(GETDATE() AS DATE)
-              THEN 1 ELSE 0 END AS Age
-FROM Student;
-GO
-
-
